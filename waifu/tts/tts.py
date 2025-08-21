@@ -34,7 +34,8 @@ async def run_sovits_api():
                         except aiohttp.ClientConnectionError:
                             await asyncio.sleep(1)
         except asyncio.TimeoutError:
-            raise Exception("SoVITS API failed to start within 30 seconds")
+            print("SoVITS API didn't respond within 30 seconds")
+            
         return proc
     finally:
         os.chdir(original_path)

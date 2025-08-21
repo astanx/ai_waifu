@@ -1,5 +1,6 @@
-#waifu/memory/conversation.json
+waifu/memory/conversation.json
 **/__pycache__/
 venv/
 .vs/
 .DS_Store
+GPT-SoVITS/
