@@ -2,4 +2,4 @@
 **/__pycache__/
 venv/
 .vs/
-GPT-SoVITS/GPT_SoVITS/pretrained_models/
+.DS_Store
