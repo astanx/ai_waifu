@@ -1,0 +1,5 @@
+#waifu/memory/conversation.json
+**/__pycache__/
+venv/
+.vs/
+GPT-SoVITS/GPT_SoVITS/pretrained_models/
