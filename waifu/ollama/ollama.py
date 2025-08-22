@@ -11,3 +11,17 @@ def chat(messages, text):
     content = response["message"]["content"]
     messages.append({"role": "assistant", "content": content})
     return content
+
+async def chat_stream(messages, text):
+    messages.append({"role": "user", "content": text})
+
+    stream = ollama.chat(model=model, messages=messages, stream=True)
+
+    full_response = ""
+    for chunk in stream:
+        if "message" in chunk and "content" in chunk["message"]:
+            chunk_content = chunk["message"]["content"]
+            yield chunk_content
+            full_response += chunk_content
+
+    messages.append({"role": "assistant", "content": full_response})

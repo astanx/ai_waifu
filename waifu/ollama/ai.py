@@ -13,7 +13,7 @@ async def send_message(text):
             print(f"Unexpected response: {content}. Expected '1' or '0'.")
             raise ValueError("Response must be '1' or '0'")
         if content == "1":
-            return ai_terminal.send_message(text)
+            return await ai_terminal.send_message(text)
         else:
             return await ai_waifu.send_message(text)
         

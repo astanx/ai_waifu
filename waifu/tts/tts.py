@@ -3,6 +3,7 @@ import asyncio
 import os
 import subprocess
 import time
+import re
 from config import api_url, base_path
 
 ref_audio_path = f"{base_path}/waifu/tts/reference.wav"
@@ -35,7 +36,7 @@ async def run_sovits_api():
                             await asyncio.sleep(1)
         except asyncio.TimeoutError:
             print("SoVITS API didn't respond within 30 seconds")
-            
+
         return proc
     finally:
         os.chdir(original_path)
@@ -59,11 +60,14 @@ async def change_sovits_model(weights_path):
                 raise Exception(f"Failed to change SoVITS weights: {await response.json()}")
 
 async def tts(text, text_lang, prompt_lang, propmt_text):
+    text = text.strip()
+    
     # Validate inputs
     if not os.path.exists(ref_audio_path):
         raise FileNotFoundError(f"Reference audio file not found: {ref_audio_path}")
-    if not text:
-        raise ValueError("Text input cannot be empty")
+    if not text or re.fullmatch(r"[^\w]+", text):
+        print("Text input cannot be empty")
+        return
     
     params = {
         "text": text,
@@ -71,21 +75,30 @@ async def tts(text, text_lang, prompt_lang, propmt_text):
         "ref_audio_path": ref_audio_path,
         "prompt_lang": prompt_lang,
         "prompt_text": propmt_text,
+        "streaming_mode": True
     }
-    output_file = f"output_{int(time.time())}.wav"
     
     async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(f"{api_url}/tts", json=params) as response:
-                if response.status == 200:
-                    with open(output_file, "wb") as f:
-                        f.write(await response.read())
-                    print(f"Audio saved to {output_file}")
-                    subprocess.run(["ffplay", "-nodisp", "-autoexit", output_file])
-                    print("Audio playback finished")
-                    os.remove(output_file)
-                else:
+        async with session.post(f"{api_url}/tts", json=params) as response:
+            try:
+                if response.status != 200:
                     error_data = await response.json()
-                    raise Exception(f"Failed to generate TTS: {error_data}")
-        except aiohttp.ClientError as e:
-            raise Exception(f"Network error during TTS request: {e}")
+                    raise Exception(f"TTS failed: {error_data}")
+
+                print("🔊 Live streaming...")
+
+                ffplay = subprocess.Popen(
+                    ["ffplay", "-nodisp", "-autoexit", "-"],
+                    stdin=subprocess.PIPE
+                )
+
+                async for chunk in response.content.iter_chunked(4096):
+                    if chunk:
+                        ffplay.stdin.write(chunk)
+                        ffplay.stdin.flush()
+
+                ffplay.stdin.close()
+                await asyncio.sleep(0.1)
+            except aiohttp.ClientError as e:
+                raise Exception(f"Network error during TTS request: {e}")
+        

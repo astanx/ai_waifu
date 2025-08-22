@@ -18,3 +18,9 @@ pip install -r requirements.txt
 3. Install GPT-SOVITs
 
 [Instruction](https://github.com/RVC-Boss/GPT-SoVITS)
+
+4. Install ollama model
+
+```bash
+ollama pull gemma2:9b
+```
