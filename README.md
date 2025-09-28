@@ -24,3 +24,9 @@ pip install -r requirements.txt
 ```bash
 ollama pull gemma2:9b
 ```
+
+5. Run
+
+```bash
+python main.py
+```
