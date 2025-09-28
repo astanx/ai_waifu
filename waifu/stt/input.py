@@ -1,4 +1,4 @@
-from . import stt
+from .stt import stt
 
 def user_input(holder):
     user_input = input(holder).strip()
@@ -7,4 +7,8 @@ def user_input(holder):
         text = user_input
     else:
         text = stt()
+        
+    # no text input
+    #return stt()
+    
     return text

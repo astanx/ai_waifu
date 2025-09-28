@@ -4,3 +4,4 @@ venv/
 .vs/
 .DS_Store
 GPT-SoVITS/
+frontend/node_modules/

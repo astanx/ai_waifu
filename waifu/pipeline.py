@@ -2,16 +2,23 @@ import waifu.tts as tts
 from config import weights_path
 import waifu.stt as stt
 import waifu.ollama as ai
-import waifu.memory as memory
+import waifu.animations as animations
 import asyncio
+import json
 
-placeholder = "\nSay something (press Enter to use voice) or type 'exit': "
+placeholder = "\nSay something (or type 'exit'): "
 
 async def start_pipeline():    
-    process = None
+    frontend_process = None
+    sovits_process = None
     try:
-        process = await tts.run_sovits_api()
-        if not process:
+        frontend_process = await animations.start_frontend()
+        if not frontend_process:
+            raise Exception("Failed to start frontend server")
+        
+        asyncio.create_task(animations.start_websocket_server())
+        sovits_process = await tts.run_sovits_api()
+        if not sovits_process:
             raise Exception("Failed to start SoVITS API")
         
         await tts.change_sovits_model(weights_path)
@@ -19,22 +26,29 @@ async def start_pipeline():
         print("Welcome to the AI Waifu chat!")
 
         while True:
-            text = await asyncio.to_thread(stt.user_input, placeholder)
+            text = await get_user_input(placeholder)
             
             if text.lower() == "exit":
                 break
 
             try:
                 print(f"You: {text}")
-                response = await ai.send_message(text) 
-                print(f"AI: {response}")
+                request = json.dumps({"from": "user", "content" : text})    
+                await ai.send_message(request) 
             except Exception as e:
                 print(f"Error processing message or TTS: {e}")
 
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        memory.save_conversation()
-        if process:
-            await tts.stop_sovits_api(process)
+        ai.waifu_save_conversation()
+        await animations.stop_websocket_server()
+        if sovits_process:
+            await tts.stop_sovits_api(sovits_process)
+        await animations.stop_frontend(frontend_process)
+        
         print("Goodbye!")
+        
+        
+async def get_user_input(prompt):
+    return await asyncio.to_thread(stt.user_input, prompt)
