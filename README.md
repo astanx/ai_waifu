@@ -9,7 +9,7 @@ git clone https://github.com/astanx/ai_waifu.git
 cd ai_waifu
 ```
 
-2. Install dependencies(may not work correctly)
+2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
