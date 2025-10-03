@@ -22,11 +22,12 @@ async def start_pipeline():
             raise Exception("Failed to start SoVITS API")
         
         await tts.change_sovits_model(weights_path)
+        mode = input("Select STT mode ('cpu' or 'gpu'): ").strip().lower()
         
         print("Welcome to the AI Waifu chat!")
 
         while True:
-            text = await get_user_input(placeholder)
+            text = await get_user_input(placeholder, mode)
             
             if text.lower() == "exit":
                 break
@@ -50,5 +51,5 @@ async def start_pipeline():
         print("Goodbye!")
         
         
-async def get_user_input(prompt):
-    return await asyncio.to_thread(stt.user_input, prompt)
+async def get_user_input(prompt, mode="gpu"):
+    return await asyncio.to_thread(stt.user_input, prompt, mode)

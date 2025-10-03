@@ -4,7 +4,7 @@ import speech_recognition as sr
 from . import config
 import numpy as np
 
-def stt():
+def stt(mode: str = "gpu"):
     r = sr.Recognizer()
     r.pause_threshold = 0.8   # seconds of silence before stopping listening
     r.dynamic_energy_threshold = True # adjust if background noise is high
@@ -15,13 +15,16 @@ def stt():
 
     # Convert audio to numpy array
     audio_data = np.frombuffer(audio.get_wav_data(), dtype=np.int16).astype(np.float32) / 32768.0
-    # Run on CPU with INT8
-    model = WhisperModel(config.model_size, device="cpu", compute_type="int8")
+    
+    if mode == "cpu":
+        model = WhisperModel(config.model_size, device="cpu", compute_type="int8")
+    elif mode == "gpu" or mode == "cuda":
+        model = WhisperModel(config.model_size, device="cuda", compute_type="float16")
+    elif mode == "gpu-int8":
+        model = WhisperModel(config.model_size, device="cuda", compute_type="int8_float16")
+    else:
+        raise ValueError(f"Unknown mode '{mode}'. Use 'cpu', 'gpu', or 'gpu-int8'.")
 
-    # or run on GPU with FP16
-    #model = WhisperModel(model_size, device="cuda", compute_type="float16")
-    # or run on GPU with INT8
-    # model = WhisperModel(model_size, device="cuda", compute_type="int8_float16")
 
 
     segments, info = model.transcribe(audio_data, beam_size=3)

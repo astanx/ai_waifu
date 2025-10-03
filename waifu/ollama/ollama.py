@@ -27,19 +27,3 @@ def chat(text: str) -> AssistantResponse:
 
 def waifu_save_conversation():
     memory.save_conversation(messages)
-
-'''
-TODO rework
-async def chat_stream(text: str):
-    messages.append({"role": "user", "content": text})
-
-    stream = client.chat(model=model, messages=messages, stream=True)
-
-    full_response = ""
-    for chunk in stream:
-        if "message" in chunk and "content" in chunk["message"]:
-            chunk_content = chunk["message"]["content"]
-            yield chunk_content
-            full_response += chunk_content
-    messages.append({"role": "assistant", "content": full_response})
-    '''
